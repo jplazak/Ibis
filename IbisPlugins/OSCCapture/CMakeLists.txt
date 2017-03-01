@@ -1,6 +1,6 @@
 # define sources
-set( PluginSrc osccaptureplugininterface.cpp osccapturewidget.cpp ip/posix/NetworkingUtils.cpp
-    ip/posix/UdpSocket.cpp ip/IpEndpointName.cpp osc/OscOutboundPacketStream.cpp 
+set( PluginSrc osccaptureplugininterface.cpp osccapturewidget.cpp ip/NetworkingUtils.cpp
+    ip/UdpSocket.cpp ip/IpEndpointName.cpp osc/OscOutboundPacketStream.cpp
     osc/OscPrintReceivedElements.cpp osc/OscReceivedElements.cpp osc/OscTypes.cpp )
 
 set( PluginHdrMoc osccapturewidget.h osccaptureplugininterface.h ip/IpEndpointName.h
