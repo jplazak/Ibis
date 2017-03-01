@@ -70,9 +70,9 @@ void OSCCapturePluginInterface::OnUpdate()
         osc::OutboundPacketStream p( buffer, OUTPUT_BUFFER_SIZE );
         
         p << osc::BeginBundleImmediate
-            << osc::BeginMessage( "/pointerX" ) << m_tipPosition[0] << osc::EndMessage
-            << osc::BeginMessage( "/pointerY" ) << m_tipPosition[1] << osc::EndMessage
-            << osc::BeginMessage( "/pointerZ" ) << m_tipPosition[2] << osc::EndMessage
+            << osc::BeginMessage( "/pointerX" ) << ((float)m_tipPosition[0]) << osc::EndMessage
+            << osc::BeginMessage( "/pointerY" ) << ((float)m_tipPosition[1]) << osc::EndMessage
+            << osc::BeginMessage( "/pointerZ" ) << ((float)m_tipPosition[2]) << osc::EndMessage
         << osc::EndBundle;
         
         transmitSocket.Send( p.Data(), p.Size() );
