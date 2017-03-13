@@ -21,6 +21,7 @@ See Copyright.txt or http://ibisneuronav.org/Copyright.html for details.
 #define ADDRESS "127.0.0.1"                 //OSC Data Address
 #define PORT 8005                           //OSC Data Port
 #define OUTPUT_BUFFER_SIZE 1024             //OSC Data Size
+UdpTransmitSocket transmitSocket( IpEndpointName( ADDRESS, PORT ) );
 
 OSCCapturePluginInterface::OSCCapturePluginInterface()
 {
@@ -64,8 +65,6 @@ void OSCCapturePluginInterface::OnUpdate()
         m_tipPosition[1] = pos[1];
         m_tipPosition[2] = pos[2];
         
-    // DEV CHANGES BEGIN
-        UdpTransmitSocket transmitSocket( IpEndpointName( ADDRESS, PORT ) );
         char buffer[OUTPUT_BUFFER_SIZE];
         osc::OutboundPacketStream p( buffer, OUTPUT_BUFFER_SIZE );
         
@@ -76,7 +75,6 @@ void OSCCapturePluginInterface::OnUpdate()
         << osc::EndBundle;
         
         transmitSocket.Send( p.Data(), p.Size() );
-    //END DEV CHANGES
         
         emit Modified();
     }
