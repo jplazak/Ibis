@@ -6,8 +6,13 @@
    <rect>
     <x>0</x>
     <y>0</y>
+<<<<<<< HEAD
     <width>284</width>
     <height>527</height>
+=======
+    <width>318</width>
+    <height>557</height>
+>>>>>>> ddbfe6cd5ae60614e9379acc8fcb1c40774417ca
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,6 +21,21 @@
   <layout class="QVBoxLayout" name="verticalLayout_3">
    <item>
     <widget class="QLabel" name="pointerPosLabel">
+<<<<<<< HEAD
+=======
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>300</width>
+       <height>0</height>
+      </size>
+     </property>
+>>>>>>> ddbfe6cd5ae60614e9379acc8fcb1c40774417ca
      <property name="text">
       <string>Pointer pos: ( 0.0, 0.0, 0.0 )</string>
      </property>
