@@ -39,10 +39,7 @@ public:
 private slots:
 
     void OnUpdate();
-<<<<<<< HEAD
-=======
     void OnPointsModified();
->>>>>>> ddbfe6cd5ae60614e9379acc8fcb1c40774417ca
 
 signals:
 
@@ -51,10 +48,7 @@ signals:
 protected:
 
     double m_tipPosition[3];
-<<<<<<< HEAD
-=======
     int m_pointsId;
->>>>>>> ddbfe6cd5ae60614e9379acc8fcb1c40774417ca
 };
 
 #endif
