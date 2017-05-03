@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-<<<<<<< HEAD
+
     <width>284</width>
     <height>527</height>
 =======
@@ -21,7 +21,7 @@
   <layout class="QVBoxLayout" name="verticalLayout_3">
    <item>
     <widget class="QLabel" name="pointerPosLabel">
-<<<<<<< HEAD
+
 =======
      <property name="sizePolicy">
       <sizepolicy hsizetype="Fixed" vsizetype="Preferred">

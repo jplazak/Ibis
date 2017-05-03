@@ -15,8 +15,9 @@ See Copyright.txt or http://ibisneuronav.org/Copyright.html for details.
 
 #include <QObject>
 #include "toolplugininterface.h"
+#include "globaleventhandler.h"
 
-class OSCCapturePluginInterface : public QObject, public ToolPluginInterface
+class OSCCapturePluginInterface : public QObject, public ToolPluginInterface, public GlobalEventHandler
 {
 
     Q_OBJECT
@@ -35,6 +36,8 @@ public:
     virtual bool WidgetAboutToClose();
 
     double * GetTipPosition() { return m_tipPosition; }
+
+    virtual bool HandleKeyboardEvent( QKeyEvent * keyEvent );
 
 private slots:
 
