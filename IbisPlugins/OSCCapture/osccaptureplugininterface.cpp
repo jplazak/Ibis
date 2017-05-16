@@ -26,23 +26,57 @@ See Copyright.txt or http://ibisneuronav.org/Copyright.html for details.
 UdpTransmitSocket transmitSocket( IpEndpointName( ADDRESS, PORT ) );
 int counter = 0;
 
-double trialPoints[16][3] = {
-{ 0, 5, 50 },
-{ 50, 5, 50 },
-{ 0, 45, 50 },
-{ 50, 45, 50 },
-{ 0, 50, 45 },
-{ 50, 50, 45 },
-{ 0, 50, 5 },
-{ 50, 50, 5 },
-{ 0, 45, 0 },
-{ 50, 45, 0 },
-{  0, 5, 0 },
-{  50, 5, 0 },
-{  0, 0, 45 },
-{  50, 0, 45 },
-{  0, 0, 5 },
-{  50, 0, 5 }
+double trialPoints[50][3] = {
+{-2.8889, -33.2248, -532.156},
+{-2.8889, -40.637, -489.906},
+{-1.1689, -28.0362, -534.38},
+{-7.6189, -10.2468, -481.753 },
+{-7.1889, 37.1915, -517.332 },
+{0.551104, -67.3211, -503.99},
+{-6.7589, 23.8495, -502.507},
+{-5.4689, 13.4723, -509.178},
+{-1.40645, -34.7072, -530.674},
+{-47.8626, -11.3376, -529.191},
+{46.0319, -11.3376, -528.45},
+{28.2425, -3.16765, -485.459},
+{2.01251, -68.0623, -557.358},
+{-12.5248, -42.6923, -539.568},
+{31.7497, -23.3223, -517.568},
+{47.2297, -62.1325, -555.134},
+{-7.33624, 20.8846, -501.025},
+{28.9837, 20.8846, -552.916},
+{-60.7044, 0.130308, -555.134},
+{-39.9501, 0.130308, -529.932},
+{-5.85379, -9.32969, -479.529},
+{-62.4154, -18.186, -528.45},
+{26.7601, -35.816, -550.687},
+{33.4618, 28.0405, -538.086},
+{-7.33624, -82.1456, -505.472},
+{-3.34819, -10.4816, -573.665},
+{-3.34819, 4.92725, -507.696},
+{36.886, -2.77718, -519.696},
+{-44.4385, -25.0344, -562.696},
+{-1.40645, -73.1549, -489.165},
+{18.6066, -38.7312, -549.204},
+{52.1466, 11.2487, -535.121},
+{0.976599, 26.0731, -507.696},
+{-10.2034, -41.3782, -537.345},
+{10.0066, -35.4484, -540.31},
+{-6.3334, 22.367, -503.248},
+{-38.4676, 19.357, -538.827},
+{-47.3623, 5.59703, -541.051},
+{-19.1958, -16.333, -551.428},
+{-7.33624, -28.373, -463.963},
+{-59.2219, -28.373, -525.485},
+{48.9968, -33.533, -531.415},
+{30.0377, 16.0559, -543.274},
+{14.1277, -66.5799, -555.875},
+{6.54181, -31.7423, -536.603},
+{5.21228, 7.49539, -556.603},
+{-35.2077, -10.9881, -495.836},
+{-7.62843, 70.8429, -538.086},
+{-9.77843, 63.1343, -501.025},
+{-56.9982, -3.57581, -513.625}
 };
 
 OSCCapturePluginInterface::OSCCapturePluginInterface()
@@ -135,33 +169,33 @@ void OSCCapturePluginInterface::OnUpdate()
                 m_pointCoord[2] = mpos[2];
         }
 
-        //Calculate Distance
-        double distanceToTarget = sqrt(pow((m_pointCoord[0] - pos[0]),2) + pow((m_pointCoord[1] - pos[1]),2) +
-                pow((m_pointCoord[3] - pos[3]),2));
+//        //Calculate Distance
+//        double distanceToTarget = sqrt(pow((m_pointCoord[0] - pos[0]),2) + pow((m_pointCoord[1] - pos[1]),2) +
+//                pow((m_pointCoord[3] - pos[3]),2));
 
-        double distanceToStartPoint = sqrt(pow((m_pointCoord[0] - 200),2) + pow((m_pointCoord[1] - 200),2) +
-                pow((m_pointCoord[3] - 200),2));
+//        double distanceToStartPoint = sqrt(pow((m_pointCoord[0] - 200),2) + pow((m_pointCoord[1] - 200),2) +
+//                pow((m_pointCoord[3] - 200),2));
 
 
-        //Trigger End Trial if Within Range
-        if (distanceToTarget < 10.0){
-            std::cout<< "Within threshold; End Trial";
-            char buffer[OUTPUT_BUFFER_SIZE];
-            osc::OutboundPacketStream p( buffer, OUTPUT_BUFFER_SIZE );
-            p << osc::BeginBundleImmediate
-            << osc::BeginMessage( "/endTrialSignal" ) << "bang" << osc::EndMessage << osc::EndBundle;
-            transmitSocket.Send( p.Data(), p.Size() );
-        }
+//        //Trigger End Trial if Within Range
+//        if (distanceToTarget < 10.0){
+//            std::cout<< "Within threshold; End Trial";
+//            char buffer[OUTPUT_BUFFER_SIZE];
+//            osc::OutboundPacketStream p( buffer, OUTPUT_BUFFER_SIZE );
+//            p << osc::BeginBundleImmediate
+//            << osc::BeginMessage( "/endTrialSignal" ) << "bang" << osc::EndMessage << osc::EndBundle;
+//            transmitSocket.Send( p.Data(), p.Size() );
+//        }
 
-        //Trigger Start Trial if Within Range of Marker
-        if (distanceToStartPoint < 10.0){
-            std::cout<< "Within threshold; Start Trial";
-            char buffer[OUTPUT_BUFFER_SIZE];
-            osc::OutboundPacketStream p( buffer, OUTPUT_BUFFER_SIZE );
-            p << osc::BeginBundleImmediate
-            << osc::BeginMessage( "/beginTrialSignal" ) << "bang" << osc::EndMessage << osc::EndBundle;
-            transmitSocket.Send( p.Data(), p.Size() );
-        }
+//        //Trigger Start Trial if Within Range of Marker
+//        if (distanceToStartPoint < 10.0){
+//            std::cout<< "Within threshold; Start Trial";
+//            char buffer[OUTPUT_BUFFER_SIZE];
+//            osc::OutboundPacketStream p( buffer, OUTPUT_BUFFER_SIZE );
+//            p << osc::BeginBundleImmediate
+//            << osc::BeginMessage( "/beginTrialSignal" ) << "bang" << osc::EndMessage << osc::EndBundle;
+//            transmitSocket.Send( p.Data(), p.Size() );
+//        }
 
         //Send Pointer Information
         char buffer[OUTPUT_BUFFER_SIZE];
