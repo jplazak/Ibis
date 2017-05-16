@@ -154,48 +154,49 @@ void OSCCapturePluginInterface::OnUpdate()
         //enum TrackerToolState{ Ok, Missing, OutOfVolume, OutOfView, Undefined };
         int p_state = (int)p->GetState();
 
-//        //Get Marker Coords
-//        double m_pointCoord[3] = {0.0,0.0,0.0};
-//        PointsObject * m = PointsObject::SafeDownCast( GetSceneManager()->GetObjectByID( m_pointsId ) );
-//        Q_ASSERT( m );
-//        m->SetPointCoordinates(0, trialPoints[counter]);
+        //Get Marker Coords
+        double m_pointCoord[3] = {0.0,0.0,0.0};
+        PointsObject * m = PointsObject::SafeDownCast( GetSceneManager()->GetObjectByID( m_pointsId ) );
+        Q_ASSERT( m );
+        m->SetPointCoordinates(0, trialPoints[counter]);
 //        counter++;
 
-//        for( int i = 0; i < m->GetNumberOfPoints(); ++i )  {
-//             double * mpos = m->GetPointCoordinates(i);
-//                std::cout<< mpos[0] << mpos[1] << mpos[2];
-//                m_pointCoord[0] = mpos[0];
-//                m_pointCoord[1] = mpos[1];
-//                m_pointCoord[2] = mpos[2];
-//        }
+        for( int i = 0; i < m->GetNumberOfPoints(); ++i )  {
+             double * mpos = m->GetPointCoordinates(i);
+                std::cout<< mpos[0] << mpos[1] << mpos[2];
+                m_pointCoord[0] = mpos[0];
+                m_pointCoord[1] = mpos[1];
+                m_pointCoord[2] = mpos[2];
 
-//        //Calculate Distance
-//        double distanceToTarget = sqrt(pow((m_pointCoord[0] - pos[0]),2) + pow((m_pointCoord[1] - pos[1]),2) +
-//                pow((m_pointCoord[3] - pos[3]),2));
+        }
 
-//        double distanceToStartPoint = sqrt(pow((m_pointCoord[0] - 200),2) + pow((m_pointCoord[1] - 200),2) +
-//                pow((m_pointCoord[3] - 200),2));
+        //Calculate Distance
+        double distanceToTarget = sqrt(pow((m_pointCoord[0] - pos[0]),2) + pow((m_pointCoord[1] - pos[1]),2) +
+                pow((m_pointCoord[3] - pos[3]),2));
+
+        double distanceToStartPoint = sqrt(pow((m_pointCoord[0] - -200),2) + pow((m_pointCoord[1] - -10),2) +
+                pow((m_pointCoord[3] - -30),2));
 
 
-//        //Trigger End Trial if Within Range
-//        if (distanceToTarget < 10.0){
-//            std::cout<< "Within threshold; End Trial";
-//            char buffer[OUTPUT_BUFFER_SIZE];
-//            osc::OutboundPacketStream p( buffer, OUTPUT_BUFFER_SIZE );
-//            p << osc::BeginBundleImmediate
-//            << osc::BeginMessage( "/endTrialSignal" ) << "bang" << osc::EndMessage << osc::EndBundle;
-//            transmitSocket.Send( p.Data(), p.Size() );
-//        }
+        //Trigger End Trial if Within Range
+        if (distanceToTarget < 10.0){
+            std::cout<< "Within threshold; End Trial";
+            char buffer[OUTPUT_BUFFER_SIZE];
+            osc::OutboundPacketStream p( buffer, OUTPUT_BUFFER_SIZE );
+            p << osc::BeginBundleImmediate
+            << osc::BeginMessage( "/endTrialSignal" ) << "bang" << osc::EndMessage << osc::EndBundle;
+            transmitSocket.Send( p.Data(), p.Size() );
+        }
 
-//        //Trigger Start Trial if Within Range of Marker
-//        if (distanceToStartPoint < 10.0){
-//            std::cout<< "Within threshold; Start Trial";
-//            char buffer[OUTPUT_BUFFER_SIZE];
-//            osc::OutboundPacketStream p( buffer, OUTPUT_BUFFER_SIZE );
-//            p << osc::BeginBundleImmediate
-//            << osc::BeginMessage( "/beginTrialSignal" ) << "bang" << osc::EndMessage << osc::EndBundle;
-//            transmitSocket.Send( p.Data(), p.Size() );
-//        }
+        //Trigger Start Trial if Within Range of Marker
+        if (distanceToStartPoint < 10.0){
+            std::cout<< "Within threshold; Start Trial";
+            char buffer[OUTPUT_BUFFER_SIZE];
+            osc::OutboundPacketStream p( buffer, OUTPUT_BUFFER_SIZE );
+            p << osc::BeginBundleImmediate
+            << osc::BeginMessage( "/beginTrialSignal" ) << "bang" << osc::EndMessage << osc::EndBundle;
+            transmitSocket.Send( p.Data(), p.Size() );
+        }
 
         //Send Pointer Information
         char buffer[OUTPUT_BUFFER_SIZE];
@@ -205,6 +206,9 @@ void OSCCapturePluginInterface::OnUpdate()
             << osc::BeginMessage( "/pointerY" ) << ((float)m_tipPosition[1]) << osc::EndMessage
             << osc::BeginMessage( "/pointerZ" ) << ((float)m_tipPosition[2]) << osc::EndMessage
             << osc::BeginMessage( "/pointerState" ) << p_state << osc::EndMessage
+
+            << osc::BeginMessage( "/testD" ) << ((float)distanceToStartPoint) << osc::EndMessage
+
         << osc::EndBundle;
         transmitSocket.Send( p.Data(), p.Size() );
         
