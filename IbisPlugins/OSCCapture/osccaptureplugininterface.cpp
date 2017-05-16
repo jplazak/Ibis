@@ -154,20 +154,20 @@ void OSCCapturePluginInterface::OnUpdate()
         //enum TrackerToolState{ Ok, Missing, OutOfVolume, OutOfView, Undefined };
         int p_state = (int)p->GetState();
 
-        //Get Marker Coords
-        double m_pointCoord[3] = {0.0,0.0,0.0};
-        PointsObject * m = PointsObject::SafeDownCast( GetSceneManager()->GetObjectByID( m_pointsId ) );
-        Q_ASSERT( m );
-        m->SetPointCoordinates(0, trialPoints[counter]);
-        counter++;
+//        //Get Marker Coords
+//        double m_pointCoord[3] = {0.0,0.0,0.0};
+//        PointsObject * m = PointsObject::SafeDownCast( GetSceneManager()->GetObjectByID( m_pointsId ) );
+//        Q_ASSERT( m );
+//        m->SetPointCoordinates(0, trialPoints[counter]);
+//        counter++;
 
-        for( int i = 0; i < m->GetNumberOfPoints(); ++i )  {
-             double * mpos = m->GetPointCoordinates(i);
-                std::cout<< mpos[0] << mpos[1] << mpos[2];
-                m_pointCoord[0] = mpos[0];
-                m_pointCoord[1] = mpos[1];
-                m_pointCoord[2] = mpos[2];
-        }
+//        for( int i = 0; i < m->GetNumberOfPoints(); ++i )  {
+//             double * mpos = m->GetPointCoordinates(i);
+//                std::cout<< mpos[0] << mpos[1] << mpos[2];
+//                m_pointCoord[0] = mpos[0];
+//                m_pointCoord[1] = mpos[1];
+//                m_pointCoord[2] = mpos[2];
+//        }
 
 //        //Calculate Distance
 //        double distanceToTarget = sqrt(pow((m_pointCoord[0] - pos[0]),2) + pow((m_pointCoord[1] - pos[1]),2) +
