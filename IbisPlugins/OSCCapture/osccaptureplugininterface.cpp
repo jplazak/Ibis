@@ -160,11 +160,11 @@ void OSCCapturePluginInterface::OnUpdate()
         double * pointCoord = m->GetPointCoordinates( 0 );
 
         //Calculate Distance
-        double distanceToTarget = sqrt(pow((pointCoord[0] - pos[0]),2) + pow((pointCoord[1] - pos[1]),2) +
+        float distanceToTarget = sqrt(pow((pointCoord[0] - pos[0]),2) + pow((pointCoord[1] - pos[1]),2) +
                 pow((pointCoord[3] - pos[3]),2));
 
-        double distanceToStartPoint = sqrt(pow((pos[0] - -200),2) + pow((pos[1] - -10),2) +
-                pow((pos[3] - -30),2));
+        float distanceToStartPoint = sqrt(pow((pos[0] + 200.0),2) + pow((pos[1] + 10.0),2) +
+                pow((pos[3] + 30.0),2));
 
 
         //Trigger End Trial if Within Range
@@ -196,7 +196,8 @@ void OSCCapturePluginInterface::OnUpdate()
             << osc::BeginMessage( "/pointerZ" ) << ((float)m_tipPosition[2]) << osc::EndMessage
             << osc::BeginMessage( "/pointerState" ) << p_state << osc::EndMessage
 
-            << osc::BeginMessage( "/testD" ) << ((float)distanceToStartPoint) << osc::EndMessage
+            << osc::BeginMessage( "/distance" ) << ((float)distanceToTarget) << osc::EndMessage
+            << osc::BeginMessage( "/reset" ) << ((float)distanceToStartPoint) << osc::EndMessage
 
         << osc::EndBundle;
         transmitSocket.Send( p.Data(), p.Size() );
