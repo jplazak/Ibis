@@ -16,6 +16,9 @@ See Copyright.txt or http://ibisneuronav.org/Copyright.html for details.
 #include "pointerobject.h"
 #include "application.h"
 #include "pointsobject.h"
+#include "view.h"
+#include "vtkCamera.h"
+#include "vtkRenderer.h"
 #include "osc/OscOutboundPacketStream.h"    //Import OSCpack Library
 #include "ip/UdpSocket.h"                   //Import OSCpack Library
 #include <QKeyEvent>
@@ -25,6 +28,13 @@ See Copyright.txt or http://ibisneuronav.org/Copyright.html for details.
 #define OUTPUT_BUFFER_SIZE 1024             //OSC Data Size
 UdpTransmitSocket transmitSocket( IpEndpointName( ADDRESS, PORT ) );
 int counter = 0;
+
+double testPoints[3][3] = {
+{-20.8889, -33.2248, -532.156},
+{2.8889, -3.2248, -2.156},
+{-15.8889, -40.2248, -132.156},
+};
+
 
 double trialPoints[50][3] = {
 {-2.8889, -33.2248, -532.156},
@@ -128,6 +138,9 @@ QWidget * OSCCapturePluginInterface::CreateTab()
     double testArray[3] = {0.0,0.0,0.0};
     p->AddPoint("",testArray);              //Points require a name (empty string here) and an array of values
     p->SetPointCoordinates(0, testArray);
+
+    vtkCamera * cam = GetSceneManager()->GetMain3DView()->GetRenderer()->GetActiveCamera();
+    Q_ASSERT( cam );
 
     return widget;
 }
@@ -233,6 +246,20 @@ bool OSCCapturePluginInterface::HandleKeyboardEvent( QKeyEvent * keyEvent )
 
         transmitSocket.Send( p.Data(), p.Size() );
         }
+
+        //Code for altering view on each trail
+        vtkCamera * cam = GetSceneManager()->GetMain3DView()->GetRenderer()->GetActiveCamera();
+        Q_ASSERT( cam );
+
+        //SetPosition( x, y, z )    // position of the optical center, were everything is projected
+        cam->SetPosition(testPoints[counter%3]);
+
+        //SetFocalPoint( x, y, z )  // Where the camera is looking, the target
+        //cam->SetFocalPoint(testPoints[counter%3]);
+
+        //SetViewUp( x, y, z )    // up of the camera: allows to roll the camera around its optical axis.
+        //cam->SetViewUp(testPoints[counter%3]);
+
         return true;
     }
     else if (keyEvent -> key() == Qt::Key_1){
