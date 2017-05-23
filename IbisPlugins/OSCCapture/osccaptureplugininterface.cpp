@@ -172,12 +172,12 @@ void OSCCapturePluginInterface::OnUpdate()
         Q_ASSERT( m );
         double * pointCoord = m->GetPointCoordinates( 0 );
 
-        //Calculate Distance
+        //Calculate Distance (Watch for infinity errors)
         float distanceToTarget = sqrt(pow((pointCoord[0] - pos[0]),2) + pow((pointCoord[1] - pos[1]),2) +
                 pow((pointCoord[3] - pos[3]),2));
 
-        float distanceToStartPoint = sqrt(pow((pos[0] + 200.0),2) + pow((pos[1] + 10.0),2) +
-                pow((pos[3] + 30.0),2));
+        float distanceToStartPoint = sqrt(pow((pos[0] - 125.0),2) + pow((pos[1] - 150.0),2) +
+                pow((pos[3] - -35.0),2));
 
 
         //Trigger End Trial if Within Range
