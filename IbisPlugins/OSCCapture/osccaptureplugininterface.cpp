@@ -29,12 +29,19 @@ See Copyright.txt or http://ibisneuronav.org/Copyright.html for details.
 UdpTransmitSocket transmitSocket( IpEndpointName( ADDRESS, PORT ) );
 int counter = 0;
 
-double testPoints[3][3] = {
-{-20.8889, -33.2248, -532.156},
-{2.8889, -3.2248, -2.156},
-{-15.8889, -40.2248, -132.156},
+double testPoints[9][3] = {
+{-170.8889, -13.2248, -518.6},  //1
+        {-170.8889, -13.2248, -518.6},  //4 move y by a small amount
+            {-170.8889, -13.2248, -508.6},  //7move y by a small amount
+{-160.8889, -13.2248, -518.6},  //2
+        {-160.8889, -15.2248, -518.6},  //5
+                {-160.8889, -15.2248, -503.6},  //8
+{-150.8889, -13.2248, -518.6},  //3  x should be between -150 & -170
+    {-150.8889, -11.2248, -518.6},  //6
+       {-150.8889, -11.2248, -513.6},   //9
 };
 
+int sonificationCode = 5;
 
 double trialPoints[50][3] = {
 {-2.8889, -33.2248, -532.156},
@@ -203,8 +210,10 @@ void OSCCapturePluginInterface::OnUpdate()
             PointsObject * p = PointsObject::SafeDownCast( GetSceneManager()->GetObjectByID( m_pointsId ) );
             Q_ASSERT( p );
 
-            p->SetPointCoordinates(0, trialPoints[counter]);
+            p->SetPointCoordinates(0, trialPoints[counter%50]);
             counter++;
+
+            sonificationCode = ((sonificationCode + 1) %5);
 
             for( int i = 0; i < p->GetNumberOfPoints(); ++i )  {
                 double * pos = p->GetPointCoordinates( i );
@@ -216,6 +225,7 @@ void OSCCapturePluginInterface::OnUpdate()
                     << osc::BeginMessage( "/pointMarkerX" ) << ((float)pos[0]) << osc::EndMessage
                     << osc::BeginMessage( "/pointMarkerY" ) << ((float)pos[1]) << osc::EndMessage
                     << osc::BeginMessage( "/pointMarkerZ" ) << ((float)pos[2]) << osc::EndMessage
+                    << osc::BeginMessage( "/sonification" ) << sonificationCode << osc::EndMessage
                     << osc::BeginMessage( "/beginTrialSignal" )  << "bang" << osc::EndMessage
                   << osc::EndBundle;
 
@@ -227,7 +237,7 @@ void OSCCapturePluginInterface::OnUpdate()
             Q_ASSERT( cam );
 
             //SetPosition( x, y, z )    // position of the optical center, were everything is projected
-            cam->SetPosition(testPoints[counter%3]);
+            //cam->SetPosition(testPoints[counter%3]);
 
 
         }
@@ -261,8 +271,21 @@ bool OSCCapturePluginInterface::HandleKeyboardEvent( QKeyEvent * keyEvent )
         PointsObject * p = PointsObject::SafeDownCast( GetSceneManager()->GetObjectByID( m_pointsId ) );
         Q_ASSERT( p );
 
-        p->SetPointCoordinates(0, trialPoints[counter]);
+        p->SetPointCoordinates(0, trialPoints[counter%50]);
         counter++;
+
+        //Code for altering view on each trail
+        vtkCamera * cam = GetSceneManager()->GetMain3DView()->GetRenderer()->GetActiveCamera();
+        Q_ASSERT( cam );
+
+        //SetPosition( x, y, z )    // position of the optical center, were everything is projected
+        cam->SetPosition(testPoints[counter%9]);
+
+        //SetFocalPoint( x, y, z )  // Where the camera is looking, the target
+        cam->SetFocalPoint(-130.8889, -13.2248, -518.6);
+
+        //SetViewUp( x, y, z )    // up of the camera: allows to roll the camera around its optical axis.
+        //cam->SetViewUp(testPoints[counter%3]);
 
         for( int i = 0; i < p->GetNumberOfPoints(); ++i )  {
             double * pos = p->GetPointCoordinates( i );
@@ -273,24 +296,13 @@ bool OSCCapturePluginInterface::HandleKeyboardEvent( QKeyEvent * keyEvent )
                 << osc::BeginMessage( "/pointMarkerX" ) << ((float)pos[0]) << osc::EndMessage
                 << osc::BeginMessage( "/pointMarkerY" ) << ((float)pos[1]) << osc::EndMessage
                 << osc::BeginMessage( "/pointMarkerZ" ) << ((float)pos[2]) << osc::EndMessage
+                << osc::BeginMessage( "/viewpoint" ) << (counter%9) << osc::EndMessage
                 << osc::BeginMessage( "/beginTrialSignal" )  << "bang" << osc::EndMessage
               << osc::EndBundle;
 
         transmitSocket.Send( p.Data(), p.Size() );
         }
 
-        //Code for altering view on each trail
-        vtkCamera * cam = GetSceneManager()->GetMain3DView()->GetRenderer()->GetActiveCamera();
-        Q_ASSERT( cam );
-
-        //SetPosition( x, y, z )    // position of the optical center, were everything is projected
-        cam->SetPosition(testPoints[counter%3]);
-
-        //SetFocalPoint( x, y, z )  // Where the camera is looking, the target
-        //cam->SetFocalPoint(testPoints[counter%3]);
-
-        //SetViewUp( x, y, z )    // up of the camera: allows to roll the camera around its optical axis.
-        //cam->SetViewUp(testPoints[counter%3]);
 
         return true;
     }
