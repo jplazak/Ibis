@@ -172,32 +172,64 @@ void OSCCapturePluginInterface::OnUpdate()
         Q_ASSERT( m );
         double * pointCoord = m->GetPointCoordinates( 0 );
 
-        //Calculate Distance (Watch for infinity errors)
-        float distanceToTarget = sqrt(pow((pointCoord[0] - pos[0]),2) + pow((pointCoord[1] - pos[1]),2) +
-                pow((pointCoord[3] - pos[3]),2));
+//        //Calculate Distance (Watch for infinity errors)
+//        float distanceToTarget = sqrt(pow((pointCoord[0] - pos[0]),2) + pow((pointCoord[1] - pos[1]),2) +
+//                pow((pointCoord[3] - pos[3]),2));
 
         float distanceToStartPoint = sqrt(pow((pos[0] - 125.0),2) + pow((pos[1] - 150.0),2) +
                 pow((pos[3] - -35.0),2));
 
 
-        //Trigger End Trial if Within Range
-        if (distanceToTarget < 10.0){
-            std::cout<< "Within threshold; End Trial";
-            char buffer[OUTPUT_BUFFER_SIZE];
-            osc::OutboundPacketStream p( buffer, OUTPUT_BUFFER_SIZE );
-            p << osc::BeginBundleImmediate
-            << osc::BeginMessage( "/endTrialSignal" ) << "bang" << osc::EndMessage << osc::EndBundle;
-            transmitSocket.Send( p.Data(), p.Size() );
-        }
+//        //Trigger End Trial if Within Range
+//        if (distanceToTarget < 10.0){
+//            std::cout<< "Within threshold; End Trial";
+//            char buffer[OUTPUT_BUFFER_SIZE];
+//            osc::OutboundPacketStream p( buffer, OUTPUT_BUFFER_SIZE );
+//            p << osc::BeginBundleImmediate
+//            << osc::BeginMessage( "/endTrialSignal" ) << "bang" << osc::EndMessage << osc::EndBundle;
+//            transmitSocket.Send( p.Data(), p.Size() );
+//        }
 
         //Trigger Start Trial if Within Range of Marker
-        if (distanceToStartPoint < 10.0){
+        if (distanceToStartPoint < 50.0){
             std::cout<< "Within threshold; Start Trial";
-            char buffer[OUTPUT_BUFFER_SIZE];
-            osc::OutboundPacketStream p( buffer, OUTPUT_BUFFER_SIZE );
-            p << osc::BeginBundleImmediate
-            << osc::BeginMessage( "/beginTrialSignal" ) << "bang" << osc::EndMessage << osc::EndBundle;
+//            char buffer[OUTPUT_BUFFER_SIZE];
+//            osc::OutboundPacketStream p( buffer, OUTPUT_BUFFER_SIZE );
+//            p << osc::BeginBundleImmediate
+//            << osc::BeginMessage( "/beginTrialSignal" ) << "bang" << osc::EndMessage << osc::EndBundle;
+//            transmitSocket.Send( p.Data(), p.Size() );
+
+            //Cue the start trial function
+            PointsObject * p = PointsObject::SafeDownCast( GetSceneManager()->GetObjectByID( m_pointsId ) );
+            Q_ASSERT( p );
+
+            p->SetPointCoordinates(0, trialPoints[counter]);
+            counter++;
+
+            for( int i = 0; i < p->GetNumberOfPoints(); ++i )  {
+                double * pos = p->GetPointCoordinates( i );
+                char buffer[OUTPUT_BUFFER_SIZE];
+                osc::OutboundPacketStream p( buffer, OUTPUT_BUFFER_SIZE );
+
+
+                p << osc::BeginBundleImmediate
+                    << osc::BeginMessage( "/pointMarkerX" ) << ((float)pos[0]) << osc::EndMessage
+                    << osc::BeginMessage( "/pointMarkerY" ) << ((float)pos[1]) << osc::EndMessage
+                    << osc::BeginMessage( "/pointMarkerZ" ) << ((float)pos[2]) << osc::EndMessage
+                    << osc::BeginMessage( "/beginTrialSignal" )  << "bang" << osc::EndMessage
+                  << osc::EndBundle;
+
             transmitSocket.Send( p.Data(), p.Size() );
+            }
+
+            //Code for altering view on each trail
+            vtkCamera * cam = GetSceneManager()->GetMain3DView()->GetRenderer()->GetActiveCamera();
+            Q_ASSERT( cam );
+
+            //SetPosition( x, y, z )    // position of the optical center, were everything is projected
+            cam->SetPosition(testPoints[counter%3]);
+
+
         }
 
         //Send Pointer Information
@@ -209,7 +241,7 @@ void OSCCapturePluginInterface::OnUpdate()
             << osc::BeginMessage( "/pointerZ" ) << ((float)m_tipPosition[2]) << osc::EndMessage
             << osc::BeginMessage( "/pointerState" ) << p_state << osc::EndMessage
 
-            << osc::BeginMessage( "/distance" ) << ((float)distanceToTarget) << osc::EndMessage
+//            << osc::BeginMessage( "/distance" ) << ((float)distanceToTarget) << osc::EndMessage
             << osc::BeginMessage( "/reset" ) << ((float)distanceToStartPoint) << osc::EndMessage
 
         << osc::EndBundle;
