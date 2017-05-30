@@ -23,6 +23,7 @@ See Copyright.txt or http://ibisneuronav.org/Copyright.html for details.
 #include "ip/UdpSocket.h"                   //Import OSCpack Library
 #include <QKeyEvent>
 #include <ctime>
+#include <QTime>
 
 #define ADDRESS "127.0.0.1"                 //OSC Data Address
 #define PORT 8005                           //OSC Data Port
@@ -30,6 +31,9 @@ See Copyright.txt or http://ibisneuronav.org/Copyright.html for details.
 UdpTransmitSocket transmitSocket( IpEndpointName( ADDRESS, PORT ) );
 int counter = 0;
 bool trialReady = 1;
+
+QTime t1;
+QTime t2;
 
 double testPoints[9][3] = {
 {-170.8889, -13.2248, -18.6},  //1
@@ -154,6 +158,8 @@ QWidget * OSCCapturePluginInterface::CreateTab()
     vtkCamera * cam = GetSceneManager()->GetMain3DView()->GetRenderer()->GetActiveCamera();
     Q_ASSERT( cam );
 
+    //std::time_t result1 = std::time(nullptr);
+
     return widget;
 }
 
@@ -210,11 +216,9 @@ void OSCCapturePluginInterface::OnUpdate()
 //            p << osc::BeginBundleImmediate
 //            << osc::BeginMessage( "/beginTrialSignal" ) << "bang" << osc::EndMessage << osc::EndBundle;
 //            transmitSocket.Send( p.Data(), p.Size() );
+            //std::time_t result1 = std::time(nullptr);
+            t1 = QTime::currentTime();
             trialReady = false;
-            std::time_t result1 = std::time(nullptr);
-            if (std::time(nullptr) - result1 > 10){
-                trialReady = true;
-            }
 
             //Cue the start trial function
             PointsObject * p = PointsObject::SafeDownCast( GetSceneManager()->GetObjectByID( m_pointsId ) );
@@ -250,6 +254,13 @@ void OSCCapturePluginInterface::OnUpdate()
             //cam->SetPosition(testPoints[counter%3]);
 
 
+        }
+
+        t2 = QTime::currentTime();
+        //std::cout << "t1: " << t1 << " t2: " << t2 << std::endl;
+       qint64 msDifference = t1.msecsTo(t2);
+        if (msDifference > 16000){
+            trialReady = true;
         }
 
         //Send Pointer Information
