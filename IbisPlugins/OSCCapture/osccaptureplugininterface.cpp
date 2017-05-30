@@ -22,12 +22,14 @@ See Copyright.txt or http://ibisneuronav.org/Copyright.html for details.
 #include "osc/OscOutboundPacketStream.h"    //Import OSCpack Library
 #include "ip/UdpSocket.h"                   //Import OSCpack Library
 #include <QKeyEvent>
+#include <ctime>
 
 #define ADDRESS "127.0.0.1"                 //OSC Data Address
 #define PORT 8005                           //OSC Data Port
 #define OUTPUT_BUFFER_SIZE 1024             //OSC Data Size
 UdpTransmitSocket transmitSocket( IpEndpointName( ADDRESS, PORT ) );
 int counter = 0;
+bool trialReady = 1;
 
 double testPoints[9][3] = {
 {-170.8889, -13.2248, -518.6},  //1
@@ -198,13 +200,18 @@ void OSCCapturePluginInterface::OnUpdate()
 //        }
 
         //Trigger Start Trial if Within Range of Marker
-        if (distanceToStartPoint < 50.0){
+        if (distanceToStartPoint < 38.0 && trialReady){
             std::cout<< "Within threshold; Start Trial";
 //            char buffer[OUTPUT_BUFFER_SIZE];
 //            osc::OutboundPacketStream p( buffer, OUTPUT_BUFFER_SIZE );
 //            p << osc::BeginBundleImmediate
 //            << osc::BeginMessage( "/beginTrialSignal" ) << "bang" << osc::EndMessage << osc::EndBundle;
 //            transmitSocket.Send( p.Data(), p.Size() );
+            trialReady = false;
+            std::time_t result1 = std::time(nullptr);
+            if (std::time(nullptr) - result1 > 10){
+                trialReady = true;
+            }
 
             //Cue the start trial function
             PointsObject * p = PointsObject::SafeDownCast( GetSceneManager()->GetObjectByID( m_pointsId ) );
