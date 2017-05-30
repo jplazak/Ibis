@@ -30,23 +30,26 @@ UdpTransmitSocket transmitSocket( IpEndpointName( ADDRESS, PORT ) );
 int counter = 0;
 
 double testPoints[9][3] = {
-{-170.8889, -13.2248, -518.6},  //1
-        {-170.8889, -13.2248, -518.6},  //4 move y by a small amount
-            {-170.8889, -13.2248, -508.6},  //7move y by a small amount
+{-170.8889, -13.2248, -18.6},  //1
+        {-170.8889, -13.2248, -18.6},  //4 move y by a small amount
+            {-170.8889, -13.2248, -08.6},  //7move y by a small amount
 {-160.8889, -13.2248, -518.6},  //2
-        {-160.8889, -15.2248, -518.6},  //5
-                {-160.8889, -15.2248, -503.6},  //8
-{-150.8889, -13.2248, -518.6},  //3  x should be between -150 & -170
-    {-150.8889, -11.2248, -518.6},  //6
-       {-150.8889, -11.2248, -513.6},   //9
+        {-160.8889, -15.2248, -18.6},  //5
+                {-160.8889, -15.2248, -03.6},  //8
+{-150.8889, -13.2248, -18.6},  //3  x should be between -150 & -170
+    {-150.8889, -11.2248, -18.6},  //6
+       {-150.8889, -11.2248, -13.6},   //9
 };
 
 int sonificationCode = 5;
 
-double trialPoints[50][3] = {
-{-2.8889, -33.2248, -532.156},
-{-2.8889, -40.637, -489.906},
-{-1.1689, -28.0362, -534.38},
+double trialPoints[3][3] = {
+{-2.8889, -33.2248, -32.156},
+{-2.8889, -40.637, 11.906},
+{-1.1689, -28.0362, -34.38}};
+
+
+/*
 {-7.6189, -10.2468, -481.753 },
 {-7.1889, 37.1915, -517.332 },
 {0.551104, -67.3211, -503.99},
@@ -95,7 +98,7 @@ double trialPoints[50][3] = {
 {-9.77843, 63.1343, -501.025},
 {-56.9982, -3.57581, -513.625}
 };
-
+*/
 OSCCapturePluginInterface::OSCCapturePluginInterface()
 {
     m_tipPosition[0] = 0.0;
@@ -271,7 +274,7 @@ bool OSCCapturePluginInterface::HandleKeyboardEvent( QKeyEvent * keyEvent )
         PointsObject * p = PointsObject::SafeDownCast( GetSceneManager()->GetObjectByID( m_pointsId ) );
         Q_ASSERT( p );
 
-        p->SetPointCoordinates(0, trialPoints[counter%50]);
+        p->SetPointCoordinates(0, trialPoints[counter%3]);
         counter++;
 
         //Code for altering view on each trail
@@ -282,7 +285,7 @@ bool OSCCapturePluginInterface::HandleKeyboardEvent( QKeyEvent * keyEvent )
         cam->SetPosition(testPoints[counter%9]);
 
         //SetFocalPoint( x, y, z )  // Where the camera is looking, the target
-        cam->SetFocalPoint(-130.8889, -13.2248, -518.6);
+        //cam->SetFocalPoint(-130.8889, -13.2248, -518.6);
 
         //SetViewUp( x, y, z )    // up of the camera: allows to roll the camera around its optical axis.
         //cam->SetViewUp(testPoints[counter%3]);
