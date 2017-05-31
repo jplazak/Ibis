@@ -17,6 +17,7 @@ PROJECT( ibis )
 
 INCLUDE(CMakeDependentOption)
 
+set( CMAKE_CXX_STANDARD 11) #Added this line for Shuffle
 #==================================================================
 # Define a variable to hold the path of automatically compiled
 # dependencies.
