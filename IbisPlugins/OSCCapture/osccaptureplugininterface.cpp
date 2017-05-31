@@ -137,9 +137,9 @@ QWidget * OSCCapturePluginInterface::CreateTab()
     {
         PointsObject * p = PointsObject::New();
         p->SetName("OSC plugin points");
-        p->SetCanChangeParent( false );
-        p->SetCanAppendChildren( false );
-        p->SetCanEditTransformManually( false );
+        p->SetCanChangeParent( true );      //was false
+        p->SetCanAppendChildren( true);   //was false
+        p->SetCanEditTransformManually( true );    //was false
         p->SetObjectManagedBySystem( true );
         GetSceneManager()->AddObject( p );
         m_pointsId = p->GetObjectID();
@@ -154,6 +154,10 @@ QWidget * OSCCapturePluginInterface::CreateTab()
 
     vtkCamera * cam = GetSceneManager()->GetMain3DView()->GetRenderer()->GetActiveCamera();
     Q_ASSERT( cam );
+
+    //New Code for loading Volumes
+//    ImageObject * i = ImageObject::SafeDownCast( GetSceneManager()->GetAllImageObjects() );
+//    Q_ASSERT ( i );
 
     return widget;
 }
@@ -294,14 +298,17 @@ bool OSCCapturePluginInterface::HandleKeyboardEvent( QKeyEvent * keyEvent )
         vtkCamera * cam = GetSceneManager()->GetMain3DView()->GetRenderer()->GetActiveCamera();
         Q_ASSERT( cam );
 
+
         //SetPosition( x, y, z )    // position of the optical center, were everything is projected
-        cam->SetPosition(testPoints[counter%9]);
+      //  cam->SetPosition(testPoints[counter%9]);
 
         //SetFocalPoint( x, y, z )  // Where the camera is looking, the target
         //cam->SetFocalPoint(-130.8889, -13.2248, -518.6);
+        cam->SetFocalPoint(75, 75, -130);
 
         //SetViewUp( x, y, z )    // up of the camera: allows to roll the camera around its optical axis.
         //cam->SetViewUp(testPoints[counter%3]);
+       // cam->SetViewUp(0,0,1);
 
         for( int i = 0; i < p->GetNumberOfPoints(); ++i )  {
             double * pos = p->GetPointCoordinates( i );
