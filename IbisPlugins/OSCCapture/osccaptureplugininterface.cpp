@@ -47,7 +47,7 @@ double testPoints[9][3] = {
 {-150.8889, -11.2248, -513.6},   //9
 };
 
-int sonificationCode = 5;
+int sonificationCode = 0;
 
 double trialPoints[50][3] = {
 {-2.8889, -33.2248, -32.156},
@@ -155,8 +155,6 @@ QWidget * OSCCapturePluginInterface::CreateTab()
     vtkCamera * cam = GetSceneManager()->GetMain3DView()->GetRenderer()->GetActiveCamera();
     Q_ASSERT( cam );
 
-    //std::time_t result1 = std::time(nullptr);
-
     return widget;
 }
 
@@ -213,7 +211,7 @@ void OSCCapturePluginInterface::OnUpdate()
 //            p << osc::BeginBundleImmediate
 //            << osc::BeginMessage( "/beginTrialSignal" ) << "bang" << osc::EndMessage << osc::EndBundle;
 //            transmitSocket.Send( p.Data(), p.Size() );
-            //std::time_t result1 = std::time(nullptr);
+
             t1 = QTime::currentTime();
             trialReady = false;
 
@@ -224,7 +222,7 @@ void OSCCapturePluginInterface::OnUpdate()
             p->SetPointCoordinates(0, trialPoints[counter%50]);
             counter++;
 
-            sonificationCode = ((sonificationCode + 1) %5);
+            sonificationCode = ((sonificationCode + 1) % 6);
 
             for( int i = 0; i < p->GetNumberOfPoints(); ++i )  {
                 double * pos = p->GetPointCoordinates( i );
