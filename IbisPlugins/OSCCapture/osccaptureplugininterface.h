@@ -18,6 +18,7 @@ See Copyright.txt or http://ibisneuronav.org/Copyright.html for details.
 #include "globaleventhandler.h"
 #include "vtkCamera.h"
 
+
 class OSCCapturePluginInterface : public QObject, public ToolPluginInterface, public GlobalEventHandler
 {
 

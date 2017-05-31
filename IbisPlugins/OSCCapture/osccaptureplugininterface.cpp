@@ -24,6 +24,11 @@ See Copyright.txt or http://ibisneuronav.org/Copyright.html for details.
 #include <QKeyEvent>
 #include <ctime>
 #include <QTime>
+#include <algorithm>    // std::shuffle
+#include <array>        // std::array
+#include <random>       // std::default_random_engine
+#include <chrono>       // std::chrono::system_clock
+#include <iostream>     // std::cout
 
 #define ADDRESS "127.0.0.1"                 //OSC Data Address
 #define PORT 8005                           //OSC Data Port
@@ -35,7 +40,17 @@ bool trialReady = 1;
 QTime t1;
 QTime t2;
 
-double testPoints[9][3] = {
+
+//// sonfication type (0-4 are sounds, 5 is silent)
+std::array<int,30> trial = {
+0,0,1,1,2,2,3,3,4,4,    //Audio (all need to be paired with NULL VIEW)
+5,5,5,5,5,5,5,5,5,5,    //Visual (Random view & no sound)
+6,6,7,7,8,8,9,9,10,10    //AudioVisual (Random View)
+};
+
+
+
+double testPoints[10][3] = {
 {-170.8889, -13.2248, -518.6},  //1
 {-170.8889, -13.2248, -518.6},  //4 move y by a small amount
 {-170.8889, -13.2248, -508.6},  //7move y by a small amount
@@ -45,6 +60,7 @@ double testPoints[9][3] = {
 {-150.8889, -13.2248, -518.6},  //3  x should be between -150 & -170
 {-150.8889, -11.2248, -518.6},  //6
 {-150.8889, -11.2248, -513.6},   //9
+{-1500.8889, -1100.2248, -5130.6},   //10need one point where everything is off the screen
 };
 
 int sonificationCode = 0;
@@ -108,10 +124,6 @@ OSCCapturePluginInterface::OSCCapturePluginInterface()
     m_tipPosition[1] = 0.0;
     m_tipPosition[2] = 0.0;
     m_pointsId = SceneManager::InvalidId;
-//    double m_pointCoord[3] = {0.0,0.0,0.0};
-//    m_pointCoord[0] = 0.0;
-//    m_pointCoord[1] = 0.0;
-//    m_pointCoord[2] = 0.0;
 }
 
 OSCCapturePluginInterface::~OSCCapturePluginInterface()
@@ -155,6 +167,11 @@ QWidget * OSCCapturePluginInterface::CreateTab()
     vtkCamera * cam = GetSceneManager()->GetMain3DView()->GetRenderer()->GetActiveCamera();
     Q_ASSERT( cam );
 
+    //Shuffle Trials
+    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    std::shuffle(trial.begin(), trial.end(), std::default_random_engine(seed));
+
+    std::cout << "First trial will be: " << trial[0] << std::endl;
     return widget;
 }
 
@@ -205,24 +222,19 @@ void OSCCapturePluginInterface::OnUpdate()
 
         //Trigger Start Trial if Within Range of Marker
         if (distanceToStartPoint < 38.0 && trialReady){
-            std::cout<< "Within threshold; Start Trial";
-//            char buffer[OUTPUT_BUFFER_SIZE];
-//            osc::OutboundPacketStream p( buffer, OUTPUT_BUFFER_SIZE );
-//            p << osc::BeginBundleImmediate
-//            << osc::BeginMessage( "/beginTrialSignal" ) << "bang" << osc::EndMessage << osc::EndBundle;
-//            transmitSocket.Send( p.Data(), p.Size() );
-
             t1 = QTime::currentTime();
             trialReady = false;
 
-            //Cue the start trial function
+           //Start trial function
             PointsObject * p = PointsObject::SafeDownCast( GetSceneManager()->GetObjectByID( m_pointsId ) );
             Q_ASSERT( p );
 
             p->SetPointCoordinates(0, trialPoints[counter%50]);
             counter++;
 
-            sonificationCode = ((sonificationCode + 1) % 6);
+            sonificationCode = trial[ (counter % 30) ];
+            //sonificationCode = ((sonificationCode + 1) % 6);
+            std::cout << "Sonification code for trial #" << counter << " is: " << sonificationCode << std::endl;
 
             for( int i = 0; i < p->GetNumberOfPoints(); ++i )  {
                 double * pos = p->GetPointCoordinates( i );
@@ -246,14 +258,19 @@ void OSCCapturePluginInterface::OnUpdate()
             Q_ASSERT( cam );
 
             //SetPosition( x, y, z )    // position of the optical center, were everything is projected
-            //cam->SetPosition(testPoints[counter%3]);
+            if (sonificationCode < 5){
+                std::cout << "Test Point off screen"; << endl;
+                cam->SetPosition(testPoints[9]);
+            } else {
+                cam->SetPosition(testPoints[counter%9]);
+            }
 
 
         }
 
+        //Check Timer
         t2 = QTime::currentTime();
-        //std::cout << "t1: " << t1 << " t2: " << t2 << std::endl;
-       qint64 msDifference = t1.msecsTo(t2);
+        qint64 msDifference = t1.msecsTo(t2);
         if (msDifference > 16000){
             trialReady = true;
         }
@@ -289,6 +306,9 @@ bool OSCCapturePluginInterface::HandleKeyboardEvent( QKeyEvent * keyEvent )
 
         p->SetPointCoordinates(0, trialPoints[counter%50]);
         counter++;
+
+        sonificationCode = trial[ (counter % 30) ];
+        std::cout << "Sonification code for trial #" << counter << " is: " << sonificationCode << std::endl;
 
         //Code for altering view on each trail
         vtkCamera * cam = GetSceneManager()->GetMain3DView()->GetRenderer()->GetActiveCamera();
