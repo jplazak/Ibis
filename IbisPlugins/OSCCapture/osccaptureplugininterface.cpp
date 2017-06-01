@@ -29,6 +29,8 @@ See Copyright.txt or http://ibisneuronav.org/Copyright.html for details.
 #include <random>       // std::default_random_engine
 #include <chrono>       // std::chrono::system_clock
 #include <iostream>     // std::cout
+#include "imageobject.h"
+#include "itkRigid3DTransform.h"
 
 #define ADDRESS "127.0.0.1"                 //OSC Data Address
 #define PORT 8005                           //OSC Data Port
@@ -39,6 +41,7 @@ bool trialReady = 1;
 
 QTime t1;
 QTime t2;
+//QList< ImageObject* > allObjects;
 
 
 //// sonfication type (0-4 are sounds, 5 is silent)
@@ -160,18 +163,13 @@ QWidget * OSCCapturePluginInterface::CreateTab()
     PointsObject * p = PointsObject::SafeDownCast( GetSceneManager()->GetObjectByID( m_pointsId ) );
     Q_ASSERT( p );
     connect( p, SIGNAL(Modified()), this, SLOT(OnPointsModified()) );
+
     double testArray[3] = {0.0,0.0,0.0};
     p->AddPoint("",testArray);              //Points require a name (empty string here) and an array of values
     p->SetPointCoordinates(0, testArray);
 
     vtkCamera * cam = GetSceneManager()->GetMain3DView()->GetRenderer()->GetActiveCamera();
     Q_ASSERT( cam );
-
-
-    //New Code for loading Volumes
-//    ImageObject * i = ImageObject::SafeDownCast( GetSceneManager()->GetAllImageObjects() );
-//    Q_ASSERT ( i );
-
 
     //Shuffle Trials
     unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
@@ -266,7 +264,7 @@ void OSCCapturePluginInterface::OnUpdate()
 
             //SetPosition( x, y, z )    // position of the optical center, were everything is projected
             if (sonificationCode < 5){
-                std::cout << "Test Point off screen"; << endl;
+                std::cout << "Test Point off screen" << endl;
                 cam->SetPosition(testPoints[9]);
             } else {
                 cam->SetPosition(testPoints[counter%9]);
@@ -348,6 +346,15 @@ bool OSCCapturePluginInterface::HandleKeyboardEvent( QKeyEvent * keyEvent )
 
         transmitSocket.Send( p.Data(), p.Size() );
         }
+
+        //New Code for loading Volumes
+        QList< ImageObject* > allObjects;
+        GetSceneManager()->GetAllImageObjects( allObjects );  // sceneManager fills the list with all images object int the scene
+        bool test = allObjects.size() == 1;
+        Q_ASSERT( test ); // make sure there is one and only one images object.
+        //Q_ASSERT( !allObjects.isEmpty() ); // make sure there is one and only one images object.
+        ImageObject * wantedObject = allObjects[0];  // just get the first one
+        //wantedObject->setProperty()
 
 
         return true;
