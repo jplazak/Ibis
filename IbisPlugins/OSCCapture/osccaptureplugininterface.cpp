@@ -30,7 +30,11 @@ See Copyright.txt or http://ibisneuronav.org/Copyright.html for details.
 #include <chrono>       // std::chrono::system_clock
 #include <iostream>     // std::cout
 #include "imageobject.h"
-#include "itkRigid3DTransform.h"
+#include <vtkMatrix4x4.h>
+#include <vtkSmartPointer.h>
+#include <vtkPerspectiveTransform.h>
+#include <vtkTransform.h>
+#include "vtkLinearTransform.h"
 
 #define ADDRESS "127.0.0.1"                 //OSC Data Address
 #define PORT 8005                           //OSC Data Port
@@ -65,6 +69,7 @@ double testPoints[10][3] = {
 {-150.8889, -11.2248, -513.6},   //9
 {-1500.8889, -1100.2248, -5130.6},   //10need one point where everything is off the screen
 };
+
 
 int sonificationCode = 0;
 
@@ -305,6 +310,13 @@ void OSCCapturePluginInterface::OnPointsModified() //Currently Not Used
 
 bool OSCCapturePluginInterface::HandleKeyboardEvent( QKeyEvent * keyEvent )
 {
+    QList< ImageObject* > allObjects;
+    GetSceneManager()->GetAllImageObjects( allObjects );  // sceneManager fills the list with all images object int the scene
+    bool test = allObjects.size()  == 1;
+    Q_ASSERT( test ); // make sure there is one and only one images object.
+    ImageObject * wantedObject = allObjects[0];  // just get the first one
+
+
     if( keyEvent -> key() == Qt::Key_Space ){
         PointsObject * p = PointsObject::SafeDownCast( GetSceneManager()->GetObjectByID( m_pointsId ) );
         Q_ASSERT( p );
@@ -347,25 +359,48 @@ bool OSCCapturePluginInterface::HandleKeyboardEvent( QKeyEvent * keyEvent )
         transmitSocket.Send( p.Data(), p.Size() );
         }
 
-        //New Code for loading Volumes
-        QList< ImageObject* > allObjects;
-        GetSceneManager()->GetAllImageObjects( allObjects );  // sceneManager fills the list with all images object int the scene
-        bool test = allObjects.size() == 1;
-        Q_ASSERT( test ); // make sure there is one and only one images object.
-        //Q_ASSERT( !allObjects.isEmpty() ); // make sure there is one and only one images object.
-        ImageObject * wantedObject = allObjects[0];  // just get the first one
-        //wantedObject->setProperty()
+        vtkTransform * transform = vtkTransform::New();
+        transform->RotateX(double(counter * 10));
+        transform->RotateY(double(counter * 20));
+        transform->RotateZ(double(counter * 30));
+        wantedObject->SetLocalTransform(transform);
+        transform->Delete();
 
+//        vtkTransform * transform3 = vtkTransform::New();
+//        transform3->RotateY(double(counter *10));
+//       transform3->RotateWXYZ((counter*20.0),1.0,0.5,0.25);
+//        wantedObject->SetLocalTransform(transform3);
+//        transform3->Delete();
 
         return true;
     }
     else if (keyEvent -> key() == Qt::Key_1){
-        char buffer[OUTPUT_BUFFER_SIZE];
-        osc::OutboundPacketStream p( buffer, OUTPUT_BUFFER_SIZE );
-        p << osc::BeginBundleImmediate
-            << osc::BeginMessage( "/endTrialSignal" ) << "bang" << osc::EndMessage << osc::EndBundle;
-        transmitSocket.Send( p.Data(), p.Size() );
+//        char buffer[OUTPUT_BUFFER_SIZE];
+//        osc::OutboundPacketStream p( buffer, OUTPUT_BUFFER_SIZE );
+//        p << osc::BeginBundleImmediate
+//            << osc::BeginMessage( "/endTrialSignal" ) << "bang" << osc::EndMessage << osc::EndBundle;
+//        transmitSocket.Send( p.Data(), p.Size() );
+
+         vtkTransform * transform2 = vtkTransform::New();
+         //transform2->RotateY(50.0);
+         //transform2->RotateX(0.0);
+         //transform2->Translate(10.0,10.0,10.0);
+           transform2->RotateY(double(counter));
+         wantedObject->SetLocalTransform(transform2);
+         transform2->Delete();
+
          return true;
     }
+    else if (keyEvent -> key() == Qt::Key_2){
+         vtkTransform * transform3 = vtkTransform::New();
+         transform3->RotateZ(double(counter));
+         wantedObject->SetLocalTransform(transform3);
+         transform3->Delete();
+
+         return true;
+    }
+
+
+
     return false;
 }
