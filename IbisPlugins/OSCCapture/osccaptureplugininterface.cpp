@@ -270,9 +270,9 @@ void OSCCapturePluginInterface::OnUpdate()
             //SetPosition( x, y, z )    // position of the optical center, were everything is projected
             if (sonificationCode < 5){
                 std::cout << "Test Point off screen" << endl;
-                cam->SetPosition(testPoints[9]);
+               // cam->SetPosition(testPoints[9]);
             } else {
-                cam->SetPosition(testPoints[counter%9]);
+              // cam->SetPosition(testPoints[counter%9]);
             }
 
 
@@ -345,6 +345,7 @@ bool OSCCapturePluginInterface::HandleKeyboardEvent( QKeyEvent * keyEvent )
 
         for( int i = 0; i < p->GetNumberOfPoints(); ++i )  {
             double * pos = p->GetPointCoordinates( i );
+            //std::cout << pos[0] << pos[1] << pos[2] << std::endl;
             char buffer[OUTPUT_BUFFER_SIZE];
             osc::OutboundPacketStream p( buffer, OUTPUT_BUFFER_SIZE );
 
@@ -364,7 +365,17 @@ bool OSCCapturePluginInterface::HandleKeyboardEvent( QKeyEvent * keyEvent )
         transform->RotateY(double(counter * 20));
         transform->RotateZ(double(counter * 30));
         wantedObject->SetLocalTransform(transform);
-        transform->Delete();
+
+        vtkLinearTransform * localPosition = wantedObject->GetLocalTransform();
+        std::cout << *localPosition <<std::endl;
+
+//        PointsObject * p2 = PointsObject::SafeDownCast( GetSceneManager()->GetObjectByID( m_pointsId ) );
+//        p2->SetLocalTransform(transform);
+//            double * pos2 = p2->GetPointCoordinates(0);
+//            std::cout << pos2[0] << pos2[1] << pos2[2] << std::endl;
+//            p2->
+
+  //      transform->Delete();
 
 //        vtkTransform * transform3 = vtkTransform::New();
 //        transform3->RotateY(double(counter *10));
@@ -387,6 +398,7 @@ bool OSCCapturePluginInterface::HandleKeyboardEvent( QKeyEvent * keyEvent )
          //transform2->Translate(10.0,10.0,10.0);
            transform2->RotateY(double(counter));
          wantedObject->SetLocalTransform(transform2);
+
          transform2->Delete();
 
          return true;
