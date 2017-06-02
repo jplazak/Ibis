@@ -337,7 +337,7 @@ bool OSCCapturePluginInterface::HandleKeyboardEvent( QKeyEvent * keyEvent )
 
         //SetFocalPoint( x, y, z )  // Where the camera is looking, the target
         //cam->SetFocalPoint(-130.8889, -13.2248, -518.6);
-        //cam->SetFocalPoint(75, 75, -130);
+        cam->SetFocalPoint(75, 75, -130);
 
         //SetViewUp( x, y, z )    // up of the camera: allows to roll the camera around its optical axis.
         //cam->SetViewUp(testPoints[counter%3]);
