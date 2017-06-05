@@ -58,18 +58,18 @@ std::array<int,22> trial = {
 
 
 
-double testPoints[10][3] = {
-{-170.8889, -13.2248, -518.6},  //1
-{-170.8889, -13.2248, -518.6},  //4 move y by a small amount
-{-170.8889, -13.2248, -508.6},  //7move y by a small amount
-{-160.8889, -13.2248, -518.6},  //2
-{-160.8889, -15.2248, -518.6},  //5
-{-160.8889, -15.2248, -503.6},  //8
-{-150.8889, -13.2248, -518.6},  //3  x should be between -150 & -170
-{-150.8889, -11.2248, -518.6},  //6
-{-150.8889, -11.2248, -513.6},   //9
-{-1500.8889, -1100.2248, -5130.6},   //10need one point where everything is off the screen
-};
+//double testPoints[10][3] = {
+//{-170.8889, -13.2248, -518.6},  //1
+//{-170.8889, -13.2248, -518.6},  //4 move y by a small amount
+//{-170.8889, -13.2248, -508.6},  //7move y by a small amount
+//{-160.8889, -13.2248, -518.6},  //2
+//{-160.8889, -15.2248, -518.6},  //5
+//{-160.8889, -15.2248, -503.6},  //8
+//{-150.8889, -13.2248, -518.6},  //3  x should be between -150 & -170
+//{-150.8889, -11.2248, -518.6},  //6
+//{-150.8889, -11.2248, -513.6},   //9
+//{-1500.8889, -1100.2248, -5130.6},   //10need one point where everything is off the screen
+//};
 
 
 int sonificationCode = 0;
@@ -245,7 +245,7 @@ void OSCCapturePluginInterface::OnUpdate()
             p->SetPointCoordinates(0, trialPoints[counter%50]);
             counter++;
 
-            sonificationCode = trial[ (counter % 30) ];
+            sonificationCode = trial[ (counter % 22) ];
             std::cout << "Sonification code for trial #" << counter << " is: " << sonificationCode << std::endl;
 
             //Code for altering view on each trail
@@ -327,7 +327,7 @@ void OSCCapturePluginInterface::OnUpdate()
             << osc::BeginMessage( "/pointerZ" ) << ((float)m_tipPosition[2]) << osc::EndMessage
             << osc::BeginMessage( "/pointerState" ) << p_state << osc::EndMessage
 //            << osc::BeginMessage( "/distance" ) << ((float)distanceToTarget) << osc::EndMessage
-            << osc::BeginMessage( "/reset" ) << ((float)distanceToStartPoint) << osc::EndMessage
+//            << osc::BeginMessage( "/reset" ) << ((float)distanceToStartPoint) << osc::EndMessage
 
         << osc::EndBundle;
         transmitSocket.Send( p.Data(), p.Size() );
@@ -359,7 +359,7 @@ bool OSCCapturePluginInterface::HandleKeyboardEvent( QKeyEvent * keyEvent )
         p->SetPointCoordinates(0, trialPoints[counter%50]);
         counter++;
 
-        sonificationCode = trial[ (counter % 30) ];
+        sonificationCode = trial[ (counter % 22) ];
         std::cout << "Sonification code for trial #" << counter << " is: " << sonificationCode << std::endl;
 
         //Code for altering view on each trail
@@ -372,7 +372,7 @@ bool OSCCapturePluginInterface::HandleKeyboardEvent( QKeyEvent * keyEvent )
 
         //SetFocalPoint( x, y, z )  // Where the camera is looking, the target
         //cam->SetFocalPoint(-130.8889, -13.2248, -518.6);
-        cam->SetFocalPoint(100, 100, -130);
+        //cam->SetFocalPoint(100, 100, -130);
 
         //SetViewUp( x, y, z )    // up of the camera: allows to roll the camera around its optical axis.
         //cam->SetViewUp(testPoints[counter%3]);
@@ -406,7 +406,7 @@ bool OSCCapturePluginInterface::HandleKeyboardEvent( QKeyEvent * keyEvent )
                 << osc::BeginMessage( "/pointMarkerX" ) << ((float)transformedPoint[0]) << osc::EndMessage
                 << osc::BeginMessage( "/pointMarkerY" ) << ((float)transformedPoint[1]) << osc::EndMessage
                 << osc::BeginMessage( "/pointMarkerZ" ) << ((float)transformedPoint[2]) << osc::EndMessage
-                << osc::BeginMessage( "/viewpoint" ) << (counter%9) << osc::EndMessage
+                //<< osc::BeginMessage( "/viewpoint" ) << (counter%9) << osc::EndMessage
                 << osc::BeginMessage( "/beginTrialSignal" )  << "bang" << osc::EndMessage
               << osc::EndBundle;
 
@@ -416,6 +416,14 @@ bool OSCCapturePluginInterface::HandleKeyboardEvent( QKeyEvent * keyEvent )
         return true;
     }
     else if (keyEvent -> key() == Qt::Key_1){
+        //RESET CONDITION
+        //Set counters back to zero
+        counter = 0;
+        unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+        std::shuffle(trial.begin(), trial.end(), std::default_random_engine(seed));
+        std::cout<< "COUNTER HAS BEEN RESET TO ZERO; Trials reshuffled" << std::endl;
+        std::cout << "First trial will be: " << trial[0] << std::endl;
+
         char buffer[OUTPUT_BUFFER_SIZE];
         osc::OutboundPacketStream p( buffer, OUTPUT_BUFFER_SIZE );
         p << osc::BeginBundleImmediate
