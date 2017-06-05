@@ -42,6 +42,7 @@ See Copyright.txt or http://ibisneuronav.org/Copyright.html for details.
 UdpTransmitSocket transmitSocket( IpEndpointName( ADDRESS, PORT ) );
 int counter = 0;
 bool trialReady = 1;
+QString path = QString ("~/home/joeplazak/Desktop/scene1.xml");
 
 QTime t1;
 QTime t2;
@@ -49,9 +50,9 @@ QTime t2;
 
 
 //// sonfication type (0-4 are sounds, 5 is silent)
-std::array<int,30> trial = {
+std::array<int,22> trial = {
 0,0,1,1,2,2,3,3,4,4,    //Audio (all need to be paired with NULL VIEW)
-5,5,5,5,5,5,5,5,5,5,    //Visual (Random view & no sound)
+5,5,    //Visual (Random view & no sound)
 6,6,7,7,8,8,9,9,10,10    //AudioVisual (Random View)
 };
 
@@ -149,6 +150,10 @@ QWidget * OSCCapturePluginInterface::CreateTab()
     widget->SetPluginInterface( this );
     connect( GetApplication(), SIGNAL(IbisClockTick()), this, SLOT(OnUpdate()) );
 
+    GetSceneManager()->ClearScene();
+    GetSceneManager()->LoadScene( path );
+
+
     //Add Listener for Keyboard inputs
     GetApplication()->AddGlobalEventHandler( this );
 
@@ -182,6 +187,8 @@ QWidget * OSCCapturePluginInterface::CreateTab()
 
     std::cout << "First trial will be: " << trial[0] << std::endl;
 
+
+
     return widget;
 }
 
@@ -212,30 +219,26 @@ void OSCCapturePluginInterface::OnUpdate()
         Q_ASSERT( m );
         double * pointCoord = m->GetPointCoordinates( 0 );
 
-//        //Calculate Distance (Watch for infinity errors)
-//        float distanceToTarget = sqrt(pow((pointCoord[0] - pos[0]),2) + pow((pointCoord[1] - pos[1]),2) +
-//                pow((pointCoord[3] - pos[3]),2));
-
         float distanceToStartPoint = sqrt(pow((pos[0] - 125.0),2) + pow((pos[1] - 150.0),2) +
                 pow((pos[3] - -35.0),2));
 
 
-//        //Trigger End Trial if Within Range
-//        if (distanceToTarget < 10.0){
-//            std::cout<< "Within threshold; End Trial";
-//            char buffer[OUTPUT_BUFFER_SIZE];
-//            osc::OutboundPacketStream p( buffer, OUTPUT_BUFFER_SIZE );
-//            p << osc::BeginBundleImmediate
-//            << osc::BeginMessage( "/endTrialSignal" ) << "bang" << osc::EndMessage << osc::EndBundle;
-//            transmitSocket.Send( p.Data(), p.Size() );
-//        }
+        QList< ImageObject* > allObjects;
+        GetSceneManager()->GetAllImageObjects( allObjects );  // sceneManager fills the list with all images object int the scene
+        bool test = allObjects.size()  == 1;
+        Q_ASSERT( test ); // make sure there is one and only one images object.
+        ImageObject * wantedObject = allObjects[0];  // just get the first one
 
         //Trigger Start Trial if Within Range of Marker
         if (distanceToStartPoint < 38.0 && trialReady){
             t1 = QTime::currentTime();
             trialReady = false;
 
-           //Start trial function
+//           //Start trial function
+//            //SetPosition( x, y, z )    // position of the optical center, were everything is projected
+
+
+
             PointsObject * p = PointsObject::SafeDownCast( GetSceneManager()->GetObjectByID( m_pointsId ) );
             Q_ASSERT( p );
 
@@ -243,36 +246,66 @@ void OSCCapturePluginInterface::OnUpdate()
             counter++;
 
             sonificationCode = trial[ (counter % 30) ];
-            //sonificationCode = ((sonificationCode + 1) % 6);
             std::cout << "Sonification code for trial #" << counter << " is: " << sonificationCode << std::endl;
-
-            for( int i = 0; i < p->GetNumberOfPoints(); ++i )  {
-                double * pos = p->GetPointCoordinates( i );
-                char buffer[OUTPUT_BUFFER_SIZE];
-                osc::OutboundPacketStream p( buffer, OUTPUT_BUFFER_SIZE );
-
-
-                p << osc::BeginBundleImmediate
-                    << osc::BeginMessage( "/pointMarkerX" ) << ((float)pos[0]) << osc::EndMessage
-                    << osc::BeginMessage( "/pointMarkerY" ) << ((float)pos[1]) << osc::EndMessage
-                    << osc::BeginMessage( "/pointMarkerZ" ) << ((float)pos[2]) << osc::EndMessage
-                    << osc::BeginMessage( "/sonification" ) << sonificationCode << osc::EndMessage
-                    << osc::BeginMessage( "/beginTrialSignal" )  << "bang" << osc::EndMessage
-                  << osc::EndBundle;
-
-            transmitSocket.Send( p.Data(), p.Size() );
-            }
 
             //Code for altering view on each trail
             vtkCamera * cam = GetSceneManager()->GetMain3DView()->GetRenderer()->GetActiveCamera();
             Q_ASSERT( cam );
 
-            //SetPosition( x, y, z )    // position of the optical center, were everything is projected
             if (sonificationCode < 5){
                 std::cout << "Test Point off screen" << endl;
-               // cam->SetPosition(testPoints[9]);
+                cam->SetFocalPoint(1000, 1000, -130);
             } else {
-              // cam->SetPosition(testPoints[counter%9]);
+              cam->SetFocalPoint(100, 100, -130); //Normal position
+            }
+
+
+
+            //SetPosition( x, y, z )    // position of the optical center, were everything is projected
+            //  cam->SetPosition(testPoints[counter%9]);
+
+            //SetFocalPoint( x, y, z )  // Where the camera is looking, the target
+            //cam->SetFocalPoint(-130.8889, -13.2248, -518.6);
+            //cam->SetFocalPoint(100, 100, -130);
+
+            //SetViewUp( x, y, z )    // up of the camera: allows to roll the camera around its optical axis.
+            //cam->SetViewUp(testPoints[counter%3]);
+
+
+            vtkTransform * transform = vtkTransform::New();
+            transform->RotateX(double(counter * 10));
+            transform->RotateY(double(counter * 20));
+            transform->RotateZ(double(counter * 30));
+            wantedObject->SetLocalTransform(transform);
+            transform->Delete();
+
+            vtkTransform * tp = p->GetWorldTransform();
+            double original[4] = { 0.0, 0.0, 0.0, 1.0 };
+            Q_ASSERT( p->GetNumberOfPoints() == 1 );
+            double * pos = p->GetPointCoordinates( 0 );
+            original[0] = pos[0];
+            original[1] = pos[1];
+            original[2] = pos[2];
+            double transformedPoint[4] = { 0.0, 0.0, 0.0, 1.0 };
+            tp->TransformPoint( pos, transformedPoint );
+            std::cout <<"World Coordinates: " << transformedPoint[0] << " " << transformedPoint[1]<< " " << transformedPoint[2] << " " << std::endl;
+
+            for( int i = 0; i < p->GetNumberOfPoints(); ++i )  {
+                double * pos = p->GetPointCoordinates( i );
+                //std::cout << pos[0] << pos[1] << pos[2] << std::endl;
+                char buffer[OUTPUT_BUFFER_SIZE];
+                osc::OutboundPacketStream p( buffer, OUTPUT_BUFFER_SIZE );
+
+                p << osc::BeginBundleImmediate
+                    << osc::BeginMessage( "/pointMarkerX" ) << ((float)transformedPoint[0]) << osc::EndMessage
+                    << osc::BeginMessage( "/pointMarkerY" ) << ((float)transformedPoint[1]) << osc::EndMessage
+                    << osc::BeginMessage( "/pointMarkerZ" ) << ((float)transformedPoint[2]) << osc::EndMessage
+                    << osc::BeginMessage( "/sonification" ) << sonificationCode << osc::EndMessage
+                    << osc::BeginMessage( "/viewpoint" ) << (counter%9) << osc::EndMessage
+                    << osc::BeginMessage( "/beginTrialSignal" )  << "bang" << osc::EndMessage
+                  << osc::EndBundle;
+
+            transmitSocket.Send( p.Data(), p.Size() );
             }
 
 
@@ -293,7 +326,6 @@ void OSCCapturePluginInterface::OnUpdate()
             << osc::BeginMessage( "/pointerY" ) << ((float)m_tipPosition[1]) << osc::EndMessage
             << osc::BeginMessage( "/pointerZ" ) << ((float)m_tipPosition[2]) << osc::EndMessage
             << osc::BeginMessage( "/pointerState" ) << p_state << osc::EndMessage
-
 //            << osc::BeginMessage( "/distance" ) << ((float)distanceToTarget) << osc::EndMessage
             << osc::BeginMessage( "/reset" ) << ((float)distanceToStartPoint) << osc::EndMessage
 
@@ -304,9 +336,13 @@ void OSCCapturePluginInterface::OnUpdate()
     }
 }
 
+
+
 void OSCCapturePluginInterface::OnPointsModified() //Currently Not Used
 {
 }
+
+
 
 bool OSCCapturePluginInterface::HandleKeyboardEvent( QKeyEvent * keyEvent )
 {
@@ -315,7 +351,6 @@ bool OSCCapturePluginInterface::HandleKeyboardEvent( QKeyEvent * keyEvent )
     bool test = allObjects.size()  == 1;
     Q_ASSERT( test ); // make sure there is one and only one images object.
     ImageObject * wantedObject = allObjects[0];  // just get the first one
-
 
     if( keyEvent -> key() == Qt::Key_Space ){
         PointsObject * p = PointsObject::SafeDownCast( GetSceneManager()->GetObjectByID( m_pointsId ) );
@@ -333,7 +368,7 @@ bool OSCCapturePluginInterface::HandleKeyboardEvent( QKeyEvent * keyEvent )
 
 
         //SetPosition( x, y, z )    // position of the optical center, were everything is projected
-      //  cam->SetPosition(testPoints[counter%9]);
+        //  cam->SetPosition(testPoints[counter%9]);
 
         //SetFocalPoint( x, y, z )  // Where the camera is looking, the target
         //cam->SetFocalPoint(-130.8889, -13.2248, -518.6);
@@ -341,8 +376,6 @@ bool OSCCapturePluginInterface::HandleKeyboardEvent( QKeyEvent * keyEvent )
 
         //SetViewUp( x, y, z )    // up of the camera: allows to roll the camera around its optical axis.
         //cam->SetViewUp(testPoints[counter%3]);
-       // cam->SetViewUp(0,0,1);
-
 
 
         vtkTransform * transform = vtkTransform::New();
@@ -351,23 +384,6 @@ bool OSCCapturePluginInterface::HandleKeyboardEvent( QKeyEvent * keyEvent )
         transform->RotateZ(double(counter * 30));
         wantedObject->SetLocalTransform(transform);
         transform->Delete();
-
-//        vtkLinearTransform * localPosition = wantedObject->GetLocalTransform();
-//        std::cout << *localPosition <<std::endl;
-
-//        PointsObject * p2 = PointsObject::SafeDownCast( GetSceneManager()->GetObjectByID( m_pointsId ) );
-//        p2->SetLocalTransform(transform);
-//            double * pos2 = p2->GetPointCoordinates(0);
-//            std::cout << pos2[0] << pos2[1] << pos2[2] << std::endl;
-//            p2->
-
-  //      transform->Delete();
-
-//        vtkTransform * transform3 = vtkTransform::New();
-//        transform3->RotateY(double(counter *10));
-//       transform3->RotateWXYZ((counter*20.0),1.0,0.5,0.25);
-//        wantedObject->SetLocalTransform(transform3);
-//        transform3->Delete();
 
         vtkTransform * tp = p->GetWorldTransform();
         double original[4] = { 0.0, 0.0, 0.0, 1.0 };
@@ -387,14 +403,9 @@ bool OSCCapturePluginInterface::HandleKeyboardEvent( QKeyEvent * keyEvent )
             osc::OutboundPacketStream p( buffer, OUTPUT_BUFFER_SIZE );
 
             p << osc::BeginBundleImmediate
-//                << osc::BeginMessage( "/pointMarkerX" ) << ((float)pos[0]) << osc::EndMessage
-//                << osc::BeginMessage( "/pointMarkerY" ) << ((float)pos[1]) << osc::EndMessage
-//                << osc::BeginMessage( "/pointMarkerZ" ) << ((float)pos[2]) << osc::EndMessage
-
                 << osc::BeginMessage( "/pointMarkerX" ) << ((float)transformedPoint[0]) << osc::EndMessage
                 << osc::BeginMessage( "/pointMarkerY" ) << ((float)transformedPoint[1]) << osc::EndMessage
                 << osc::BeginMessage( "/pointMarkerZ" ) << ((float)transformedPoint[2]) << osc::EndMessage
-
                 << osc::BeginMessage( "/viewpoint" ) << (counter%9) << osc::EndMessage
                 << osc::BeginMessage( "/beginTrialSignal" )  << "bang" << osc::EndMessage
               << osc::EndBundle;
@@ -402,37 +413,17 @@ bool OSCCapturePluginInterface::HandleKeyboardEvent( QKeyEvent * keyEvent )
         transmitSocket.Send( p.Data(), p.Size() );
         }
 
-
         return true;
     }
     else if (keyEvent -> key() == Qt::Key_1){
-//        char buffer[OUTPUT_BUFFER_SIZE];
-//        osc::OutboundPacketStream p( buffer, OUTPUT_BUFFER_SIZE );
-//        p << osc::BeginBundleImmediate
-//            << osc::BeginMessage( "/endTrialSignal" ) << "bang" << osc::EndMessage << osc::EndBundle;
-//        transmitSocket.Send( p.Data(), p.Size() );
-
-         vtkTransform * transform2 = vtkTransform::New();
-         //transform2->RotateY(50.0);
-         //transform2->RotateX(0.0);
-         //transform2->Translate(10.0,10.0,10.0);
-           transform2->RotateY(double(counter));
-         wantedObject->SetLocalTransform(transform2);
-
-         transform2->Delete();
+        char buffer[OUTPUT_BUFFER_SIZE];
+        osc::OutboundPacketStream p( buffer, OUTPUT_BUFFER_SIZE );
+        p << osc::BeginBundleImmediate
+            << osc::BeginMessage( "/endTrialSignal" ) << "bang" << osc::EndMessage << osc::EndBundle;
+        transmitSocket.Send( p.Data(), p.Size() );
 
          return true;
     }
-    else if (keyEvent -> key() == Qt::Key_2){
-         vtkTransform * transform3 = vtkTransform::New();
-         transform3->RotateZ(double(counter));
-         wantedObject->SetLocalTransform(transform3);
-         transform3->Delete();
-
-         return true;
-    }
-
-
 
     return false;
 }
