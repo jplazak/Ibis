@@ -52,12 +52,12 @@ QString path = QString ("~/home/joeplazak/Desktop/scene1.xml");
 QTime t1;
 QTime t2;
 
-// SONIFICATION CODES (0-4 are sounds, 5 is silent)
+// SONIFICATION CODES (0 = audio (moves volume off screen), 6 = av, 5 = visual
 int sonificationCode = 0;
-std::array<int,22> trial = {
-0,0,1,1,2,2,3,3,4,4,        //Audio (all need to be paired with NULL VIEW)
+std::array<int,6> trial = {
+0,0,       //Audio (all need to be paired with NULL VIEW)
 5,5,                        //Visual (Random view & no sound)
-6,6,7,7,8,8,9,9,10,10       //AudioVisual (Random View)
+6,6      //AudioVisual (Random View)
 };
 
 //  TRIAL POINTS
@@ -204,7 +204,7 @@ void OSCCapturePluginInterface::OnUpdate(){
         ImageObject * wantedObject = allObjects[0];           // just get the first one
 
         //Trigger Start Trial if Within Range of Marker
-        if (distanceToStartPoint < 38.0 && trialReady){
+        if (distanceToStartPoint < 25.0 && trialReady){
             t1 = QTime::currentTime();
             trialReady = false;
             PointsObject * p = PointsObject::SafeDownCast( GetSceneManager()->GetObjectByID( m_pointsId ) );
@@ -302,7 +302,7 @@ bool OSCCapturePluginInterface::HandleKeyboardEvent( QKeyEvent * keyEvent ) {
         Q_ASSERT( p );
         p->SetPointCoordinates(0, trialPoints[counter%50]);
         counter++;
-        sonificationCode = trial[ (counter % 22) ];
+        sonificationCode = trial[ (counter % 6) ];
         std::cout << "Sonification code for trial #" << counter << " is: " << sonificationCode << std::endl;
 
         //Code for altering view on each trail
